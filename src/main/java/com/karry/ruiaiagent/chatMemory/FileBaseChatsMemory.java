@@ -84,7 +84,6 @@ public class FileBaseChatsMemory implements ChatMemory {
     }
 
     private File getConversationFile(String conversationId) {
-
         return new File(BASE_DIR, conversationId+".kryo");
     }
 }

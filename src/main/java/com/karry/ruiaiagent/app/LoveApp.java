@@ -1,18 +1,19 @@
 package com.karry.ruiaiagent.app;
 
-import com.karry.ruiaiagent.advisors.MyAdvisors;
+
+import com.karry.ruiaiagent.advisors.ForbiddenWordAdvisor;
 import com.karry.ruiaiagent.chatMemory.FileBaseChatsMemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
@@ -20,7 +21,7 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 @Component
 @Slf4j
 public class LoveApp {
-
+    Set<String> forbiddenWords = Set.of("暴力", "违法", "色情");
     public record LoveReport(String title, List<String> suggestions) {
     }
 
@@ -47,6 +48,7 @@ public class LoveApp {
         client = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
+                        new ForbiddenWordAdvisor(forbiddenWords),
                         new MessageChatMemoryAdvisor(chatMemory)
                 )
                 .build();

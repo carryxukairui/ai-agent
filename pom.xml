@@ -99,7 +99,13 @@
             <artifactId>kryo</artifactId>
             <version>5.6.2</version>
         </dependency>
-
+        <!-- Source: https://mvnrepository.com/artifact/org.ahocorasick/ahocorasick -->
+        <dependency>
+            <groupId>org.ahocorasick</groupId>
+            <artifactId>ahocorasick</artifactId>
+            <version>0.4.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
