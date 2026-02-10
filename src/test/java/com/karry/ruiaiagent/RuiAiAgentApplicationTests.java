@@ -57,4 +57,12 @@ class RuiAiAgentApplicationTests {
         Assertions.assertNotNull(answer);
     }
 
+    @Test
+    void doChatWithMatchUser() {
+        String chatId = UUID.randomUUID().toString();
+        String message = "我是一位女生，现在我想找一位男朋友，我平时比较喜欢运动";
+        String answer =  loveApp.doChatWithRagMatchUser(message, chatId);
+        Assertions.assertNotNull(answer);
+    }
+
 }
