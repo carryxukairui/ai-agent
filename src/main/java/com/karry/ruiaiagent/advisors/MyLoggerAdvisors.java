@@ -7,7 +7,7 @@ import org.springframework.ai.chat.model.MessageAggregator;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class MyAdvisors implements CallAroundAdvisor, StreamAroundAdvisor {
+public class MyLoggerAdvisors implements CallAroundAdvisor, StreamAroundAdvisor {
 
     public void observeAfter(AdvisedResponse response,String  type){
         log.info("AI Response: {}",type+"," +response);
