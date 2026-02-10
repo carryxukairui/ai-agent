@@ -2,21 +2,22 @@ package com.karry.ruiaiagent.app;
 
 
 import com.karry.ruiaiagent.advisors.ForbiddenWordAdvisor;
+import com.karry.ruiaiagent.advisors.MyLoggerAdvisors;
 import com.karry.ruiaiagent.chatMemory.FileBaseChatsMemory;
+import com.karry.ruiaiagent.rag.LoveAppDocumentLoader;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
@@ -25,7 +26,12 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 @Component
 @Slf4j
 public class LoveApp {
+
+    @Resource
+    private VectorStore loveAppVectorStore;
+
     Set<String> forbiddenWords = Set.of("暴力", "违法", "色情");
+
     public record LoveReport(String title, List<String> suggestions) {
     }
 
@@ -93,5 +99,23 @@ public class LoveApp {
                 .entity(LoveReport.class);
         log.info("LoveReport: {}", loveReport);
         return loveReport;
+    }
+
+    /**
+     * 和RAG知识库的对话
+     */
+    public String doChatWithRag(String message, String chatId) {
+        ChatResponse response = client
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(new MyLoggerAdvisors())
+                .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
     }
 }
