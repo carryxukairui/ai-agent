@@ -1,7 +1,9 @@
 package com.karry.ruiaiagent.config;
 
 import com.karry.ruiaiagent.rag.LoveAppDocumentLoader;
+import com.karry.ruiaiagent.rag.MyKeywordEnricher;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -16,11 +18,18 @@ import java.util.List;
 import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgDistanceType.COSINE_DISTANCE;
 import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexType.HNSW;
 
+/**
+ * 配置PostgreSQL向量存储
+ */
+
 @Configuration
+@Slf4j
 public class PgVectorVectorStoreConfig {
 
     @Resource
     private LoveAppDocumentLoader loveAppDocumentLoader;
+    @Resource
+    private MyKeywordEnricher myKeywordEnricher;
 
     @Bean
     public VectorStore pgVectorVectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel dashscopeEmbeddingModel) {
@@ -35,10 +44,11 @@ public class PgVectorVectorStoreConfig {
                 .build();
         // 加载文档，分批添加（DashScope Embedding API 限制单次 batch size 不超过 10）
         List<Document> documents = loveAppDocumentLoader.loadMarkdown();
+        List<Document> enrichedDocuments = myKeywordEnricher.enrichDocuments(documents);
         int batchSize = 10;
-        for (int i = 0; i < documents.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, documents.size());
-            vectorStore.add(documents.subList(i, end));
+        for (int i = 0; i < enrichedDocuments.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, enrichedDocuments.size());
+            vectorStore.add(enrichedDocuments.subList(i, end));
         }
         return vectorStore;
     }

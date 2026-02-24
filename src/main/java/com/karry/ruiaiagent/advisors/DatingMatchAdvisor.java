@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+/**
+ * 恋爱对象智能匹配 Advisor（自定义 RAG Advisor）
+ */
 @Slf4j
 public class DatingMatchAdvisor implements CallAroundAdvisor {
 
