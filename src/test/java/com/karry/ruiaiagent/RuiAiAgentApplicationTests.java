@@ -68,7 +68,7 @@ class RuiAiAgentApplicationTests {
     @Test
     void doChatWithRagRewriter(){
         String chatId = UUID.randomUUID().toString();
-        String answer = loveApp.doChatWithRagRewriter("我正在寻找一个男朋友，他需要有运动爱好", chatId);
+        String answer = loveApp.doChatWithRagRewriter("如何在婚后保持自我成长，不被家庭琐事磨灭个人追求？", chatId, "如何在婚后保持自我成长，不被家庭琐事磨灭个人追求？");
         Assertions.assertNotNull(answer);
     }
 
