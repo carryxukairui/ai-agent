@@ -5,6 +5,7 @@ import com.karry.ruiaiagent.advisors.DatingMatchAdvisor;
 import com.karry.ruiaiagent.advisors.ForbiddenWordAdvisor;
 import com.karry.ruiaiagent.advisors.MyLoggerAdvisors;
 import com.karry.ruiaiagent.chatMemory.FileBaseChatsMemory;
+import com.karry.ruiaiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -56,7 +57,8 @@ public class LoveApp {
 
     /** 全局敏感词集合，传入 {@link ForbiddenWordAdvisor} 用于构建 Aho-Corasick Trie */
     Set<String> forbiddenWords = Set.of("暴力", "违法", "色情");
-
+    @Resource
+    private QueryRewriter queryRewriter;
     /**
      * 结构化输出：恋爱报告
      *
@@ -257,4 +259,20 @@ public class LoveApp {
         log.info("content: {}", content);
         return content;
     }
+
+
+
+
+    public String doChatWithRagRewriter(String message, String chatId) {
+        // 查询重写
+        String rewrittenMessage = queryRewriter.doQueryRewrite(message);
+        ChatResponse chatResponse = client
+                .prompt()
+                .user(rewrittenMessage)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        return content;
+    }
+
 }

@@ -65,4 +65,11 @@ class RuiAiAgentApplicationTests {
         Assertions.assertNotNull(answer);
     }
 
+    @Test
+    void doChatWithRagRewriter(){
+        String chatId = UUID.randomUUID().toString();
+        String answer = loveApp.doChatWithRagRewriter("我正在寻找一个男朋友，他需要有运动爱好", chatId);
+        Assertions.assertNotNull(answer);
+    }
+
 }
