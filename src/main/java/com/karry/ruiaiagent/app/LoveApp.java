@@ -5,6 +5,7 @@ import com.karry.ruiaiagent.advisors.DatingMatchAdvisor;
 import com.karry.ruiaiagent.advisors.ForbiddenWordAdvisor;
 import com.karry.ruiaiagent.advisors.MyLoggerAdvisors;
 import com.karry.ruiaiagent.chatMemory.FileBaseChatsMemory;
+import com.karry.ruiaiagent.rag.LoveAppRagCustomAdvisorFactory;
 import com.karry.ruiaiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -263,12 +264,14 @@ public class LoveApp {
 
 
 
-    public String doChatWithRagRewriter(String message, String chatId) {
+    public String doChatWithRagRewriter(String message, String chatId,String status) {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
         ChatResponse chatResponse = client
                 .prompt()
                 .user(rewrittenMessage)
+                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(
+                        loveAppVectorStore, status))
                 .call()
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();
