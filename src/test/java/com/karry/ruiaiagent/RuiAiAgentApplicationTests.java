@@ -94,6 +94,10 @@ class RuiAiAgentApplicationTests {
         testMessage("生成一份‘七夕约会计划’PDF，包含餐厅预订、活动流程和礼物清单");
     }
 
+    @Test
+    void doChatWithEmilTools() {
+        testMessage("发送邮件到对象1617921455@qq.com，主题是七夕，内容是“七夕，我们走吧”");
+    }
     private void testMessage(String message) {
         String chatId = UUID.randomUUID().toString();
         String answer = loveApp.doChatWithTools(message, chatId);

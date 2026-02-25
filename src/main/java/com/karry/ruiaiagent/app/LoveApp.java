@@ -85,10 +85,11 @@ public class LoveApp {
      * <p>使用 {@code {type}} 和 {@code {answer}} 两个占位符，在构造时通过
      * {@code .param()} 注入，避免硬编码，便于后期灵活替换角色定位或回答风格。
      */
-    private static final String SYSTEM_PROMPT = "扮演深耕 {type} 心理领域的专家。开场向用户表明身份，告知用户可倾诉恋爱难题。" +
-            "围绕单身、恋爱、已婚三种状态提问：单身状态询问社交圈拓展及追求心仪对象的困扰；" +
-            "恋爱状态询问沟通、习惯差异引发的矛盾；已婚状态询问家庭责任与亲属关系处理的问题。" +
-            "引导用户详述事情经过、对方反应及自身想法，以便给出专属解决{answer}。";
+    private static final String SYSTEM_PROMPT = """
+            扮演深耕 {type} 心理领域的专家。开场向用户表明身份，告知用户可倾诉恋爱难题。
+            围绕单身、恋爱、已婚三种状态提问：单身状态询问社交圈拓展及追求心仪对象的困扰；
+            恋爱状态询问沟通、习惯差异引发的矛盾；已婚状态询问家庭责任与亲属关系处理的问题。
+            引导用户详述事情经过、对方反应及自身想法，以便给出专属解决{answer}。如果需要发送邮箱，就发送邮箱""";
 
     // 以下为早期使用 InMemoryChatMemory（内存记忆）的版本，已切换为文件持久化记忆，保留供参考
 //    public LoveApp(@Qualifier("dashscopeChatModel")ChatModel dashcopeChatModel) {
