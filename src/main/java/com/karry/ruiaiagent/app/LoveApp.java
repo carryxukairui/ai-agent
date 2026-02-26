@@ -14,9 +14,15 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.tool.ToolCallingManager;
+import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -64,6 +70,13 @@ public class LoveApp {
 
     @Resource
     private ToolCallback[] allTools;
+    @Resource
+    private ToolCallingManager toolCallingManager;
+    @Resource
+    private ChatModel chatModel;
+
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
     /**
      * 结构化输出：恋爱报告
      *
@@ -293,6 +306,85 @@ public class LoveApp {
                 // 开启日志，便于观察效果
                 .advisors(new MyLoggerAdvisors())
                 .tools(allTools)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+
+    //TODO: 手动工具调用，控制工具调用
+    public String chat(String message){
+
+        log.info("Agent开始执行, message={}", message);
+        Prompt prompt = new Prompt(
+                new UserMessage(message)
+        );
+        // Step 2 调用 LLM（不会自动执行Tool）
+        ChatResponse response =
+                client
+                        .prompt(message)
+                        .call()
+                        .chatResponse();
+
+        AssistantMessage assistantMessage =
+                response.getResult().getOutput();
+
+        List<AssistantMessage.ToolCall> toolCalls =
+                assistantMessage.getToolCalls();
+
+        if(toolCalls == null || toolCalls.isEmpty()){
+            log.info("无Tool调用");
+            return assistantMessage.getText();
+        }
+
+        log.info("==========Tool调用开始==========");
+        log.info("检测到Tool调用: {}", toolCalls.size());
+
+        toolCalls.forEach(toolCall -> {
+            log.info("Tool名称: {}", toolCall.name());
+            log.info("Tool参数: {}", toolCall.arguments());
+        });
+
+        long start = System.currentTimeMillis();
+
+        // Step 3 正确执行 Tool（新版写法）
+        ToolExecutionResult result =
+                toolCallingManager.executeToolCalls(
+                        prompt,
+                        response
+                );
+
+        log.info("Tool执行完成");
+        long end = System.currentTimeMillis();
+        log.info("Tool执行耗时: {} ms", end - start);
+
+        // Step 4 把 Tool 执行结果返回 LLM
+        ChatResponse finalResponse =
+                chatModel.call(
+                        new Prompt(
+                                result.conversationHistory()
+                        )
+                );
+
+        return finalResponse
+                .getResult()
+                .getOutput()
+                .getText();
+    }
+
+
+
+    public String doChatWithMcp(String message, String chatId) {
+        ChatResponse response = client
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisors())
+                .tools(toolCallbackProvider)
                 .call()
                 .chatResponse();
         String content = response.getResult().getOutput().getText();
