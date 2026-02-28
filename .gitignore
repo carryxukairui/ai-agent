@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+/chat-memory/
+/tmp/
+/ai-image-search-mcp/mvnw.cmd
+/ai-image-search-mcp/mvnw

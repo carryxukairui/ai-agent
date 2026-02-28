@@ -3,7 +3,7 @@ spring:
     name: rui-ai-agent
   ai:
     dashscope:
-      api-key: sk-8fb51d0d3bde47e29980adbbbbbe2845
+      api-key:  你的API密钥
       chat:
         options:
           model: qwen-plus
@@ -11,12 +11,41 @@ spring:
       base-url: http://localhost:11434
       chat:
         model: gemma3:1b
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        dimensions: 1536
+        distance-type: COSINE_DISTANCE
+        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:mcp-servers.json
 
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/appdb
+    username: devuser
+    password: devpass
+
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 你的邮箱
+    password: 你的设置防密码
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: 8123
   servlet:
     context-path: /api
+
 # springdoc-openapi
 springdoc:
   swagger-ui:
@@ -29,11 +58,19 @@ springdoc:
     - group: 'default'
       paths-to-match: '/**'
       packages-to-scan: com.karry.ruiaiagent.controller
+
 # knife4j
 knife4j:
   enable: true
   setting:
     language: zh_cn
+
+
 logging:
   level:
-    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: debug
+    org.springframework.ai: debug
+
+# searchApi
+search-api:
+  api-key: 你的搜索API密钥
+

@@ -6,10 +6,12 @@
         "/c",
         "npx",
         "-y",
-        "@amap/amap-maps-mcp-server"
+        "@amap/amap-maps-mcp-server",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\username\\Desktop"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "你的 APK"
+        "AMAP_MAPS_API_KEY": "你的密钥"
       }
     }
   }
