@@ -63,9 +63,10 @@
         <!-- MCP Server stdio 模式依赖 -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp-server-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-mcp-server-webmvc-spring-boot-starter</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
+
 
     </dependencies>
 

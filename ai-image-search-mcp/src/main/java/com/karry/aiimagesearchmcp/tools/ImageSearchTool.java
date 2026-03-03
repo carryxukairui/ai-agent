@@ -48,6 +48,8 @@ public class ImageSearchTool {
         // 设置请求参数（仅包含query，可根据文档补充page、per_page等参数）
         Map<String, Object> params = new HashMap<>();
         params.put("query", query);
+        //限制图片，防止超时
+        params.put("per_page",5);
 
         // 发送 GET 请求
         String response = HttpUtil.createGet(API_URL)
