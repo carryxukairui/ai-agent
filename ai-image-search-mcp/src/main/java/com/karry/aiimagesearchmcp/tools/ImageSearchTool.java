@@ -25,8 +25,8 @@ public class ImageSearchTool {
     @Value( "${pexels-search-api.url}")
     private   String API_URL ;
 
-    @Tool(description = "search image from web")
-    public String searchImage(@ToolParam(description = "Search query keyword") String query) {
+    @Tool(description = "当用户需要搜索图片时使用，可以搜索各种主题的图片，如风景、人物、情侣、星空、动物、建筑等。返回图片的 URL 列表。")
+    public String searchImage(@ToolParam(description = "搜索关键词，使用英文描述，例如：'couple holding hands'、'starry night sky'、'romantic rose'、'sunset beach'") String query) {
         try {
             return String.join(",", searchMediumImages(query));
         } catch (Exception e) {

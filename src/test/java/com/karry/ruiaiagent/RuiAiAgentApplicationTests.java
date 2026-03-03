@@ -119,6 +119,14 @@ class RuiAiAgentApplicationTests {
         Assertions.assertNotNull(answer);
     }
 
+    @Test
+    void doChatWithMcp1() {
+        String chatId = UUID.randomUUID().toString();
+        // 测试图片搜索 MCP
+        String message = "帮我搜索一些哄另一半开心的图片";
+        String answer =  loveApp.doChatWithImageMcp(message, chatId);
+        Assertions.assertNotNull(answer);
+    }
 
 
 }

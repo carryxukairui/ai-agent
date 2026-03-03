@@ -392,4 +392,20 @@ public class LoveApp {
         return content;
     }
 
+    public String doChatWithImageMcp(String message, String chatId) {
+        ChatResponse response = client
+                .prompt()
+                .system("你可以使用图片搜索工具 (searchImage) 来帮助用户查找他们需要的图片。当用户提到'图片'、'照片'、'图'、'搜索图片'等关键词时，请调用图片搜索工具。")
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId))
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisors())
+                .tools(toolCallbackProvider)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
 }
