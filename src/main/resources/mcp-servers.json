@@ -11,8 +11,19 @@
         "C:\\Users\\username\\Desktop"
       ],
       "env": {
-        "AMAP_MAPS_API_KEY": "你的密钥"
+        "AMAP_MAPS_API_KEY": "kk"
       }
+    },
+    "ai-image-search-mcp": {
+      "command": "java",
+      "args": [
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dspring.main.web-application-type=none",
+        "-Dlogging.pattern.console=",
+        "-jar",
+        "ai-image-search-mcp/target/ai-image-search-mcp-0.0.1-SNAPSHOT.jar"
+      ],
+      "env": {}
     }
   }
 }
