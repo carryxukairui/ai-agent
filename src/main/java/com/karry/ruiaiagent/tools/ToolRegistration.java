@@ -40,13 +40,15 @@ public class ToolRegistration {
         TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
         //PDF生成
         PDFGenerationTool pdfGenerationTool = new PDFGenerationTool();
+        TerminateTool terminateTool = new TerminateTool();
         return ToolCallbacks.from(
             fileOperationTool,
-            //webSearchTool,
-           // webScrapingTool,
+            webSearchTool,
+            webScrapingTool,
             resourceDownloadTool,
             terminalOperationTool,
             pdfGenerationTool,
+                terminateTool,
                 emailTool
         );
     }
