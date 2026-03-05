@@ -19,8 +19,10 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
@@ -43,6 +45,8 @@ public class ToolCallAgent extends ReActAgent {
 
     // 工具调用管理者
     private final ToolCallingManager toolCallingManager;
+//
+//    private final ToolCallbackProvider toolCallbackProvider;
 
     // 禁用内置的工具调用机制，自己维护上下文
     private final ChatOptions chatOptions;
@@ -50,6 +54,7 @@ public class ToolCallAgent extends ReActAgent {
     public ToolCallAgent(ToolCallback[] availableTools) {
         super();
         this.availableTools = availableTools;
+
         this.toolCallingManager = ToolCallingManager.builder().build();
         // 禁用 Spring AI 内置的工具调用机制，自己维护选项和消息上下文
         this.chatOptions = DashScopeChatOptions.builder()
@@ -70,13 +75,16 @@ public class ToolCallAgent extends ReActAgent {
         }
         List<Message> messageList = getMessageList();
         Prompt prompt = new Prompt(messageList, chatOptions);
+        log.info("{} 开始 think()，消息列表大小：{}", getName(), messageList.size());
         try {
             // 获取带工具选项的响应
+            log.info("{} 开始调用 ChatClient", getName());
             ChatResponse chatResponse = getChatClient().prompt(prompt)
                     .system(getSystemPrompt())
                     .tools(availableTools)
                     .call()
                     .chatResponse();
+            log.info("{} think() 完成，收到响应", getName());
             // 记录响应，用于 Act
             this.toolCallChatResponse = chatResponse;
             AssistantMessage assistantMessage = chatResponse.getResult().getOutput();
@@ -117,6 +125,7 @@ public class ToolCallAgent extends ReActAgent {
     @Override
     public String act() {
         if (!toolCallChatResponse.hasToolCalls()) {
+            log.info("没有工具调用: {}", toolCallChatResponse.hasToolCalls());
             return "没有工具调用";
         }
         // 调用工具

@@ -1,14 +1,15 @@
 package com.karry.ruiaiagent.controller;
 
+import com.karry.ruiaiagent.agent.RuiManus;
 import com.karry.ruiaiagent.app.LoveApp;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/ai")
+@Slf4j
 public class AiController {
 
     @Resource
@@ -26,6 +28,9 @@ public class AiController {
 
     @Resource
     private ChatModel dashscopeChatModel;
+
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
 
     @GetMapping("/love_app/chat/sync")
     public String doChatWithLoveAppSync(String message, String chatId) {
@@ -67,6 +72,32 @@ public class AiController {
                 );
         // 返回emitter
         return emitter;
+    }
+
+
+    @GetMapping("/love_app/chat/image")
+    public String doChatWithImageMcp(String message, String chatId) {
+        return loveApp.doChatWithImageMcp(message, chatId);
+    }
+
+
+    /**
+     * 流式调用 Manus 超级智能体
+     *
+     * @param message
+     * @return
+     */
+    @PostMapping("/manus/chat")
+    public SseEmitter doChatWithManus(@RequestParam String message) {
+        log.info("开始执行");
+        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel);
+        return ruiManus.runStream(message);
+    }
+
+    @GetMapping("/get/manus/chat")
+    public SseEmitter getDoChatWithManus( String message) {
+        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel);
+        return ruiManus.runStream(message);
     }
 
 }

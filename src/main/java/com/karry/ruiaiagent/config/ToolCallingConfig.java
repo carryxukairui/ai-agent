@@ -10,6 +10,7 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
@@ -17,11 +18,8 @@ public class ToolCallingConfig {
 
     @Bean
     public ToolCallingManager toolCallingManager() {
-
         return DefaultToolCallingManager.builder()
                 .build();
 
     }
-
-
 }
