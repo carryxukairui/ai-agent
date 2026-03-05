@@ -1,5 +1,6 @@
 package com.karry.ruiaiagent.agent;
 
+import com.karry.ruiaiagent.agent.model.AgentStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -37,6 +38,7 @@ public abstract class ReActAgent extends BaseAgent{
             // 先思考
             boolean shouldAct = think();
             if (!shouldAct) {
+                setStatus(AgentStatus.FINISHED);
                 return "思考完成 - 无需行动";
             }
             // 再行动

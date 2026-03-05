@@ -4,12 +4,13 @@ import com.karry.ruiaiagent.advisors.MyLoggerAdvisors;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RuiManus extends ToolCallAgent {
   
-    public RuiManus(ToolCallback[] allTools, ChatModel dashscopeChatModel) {
+    public RuiManus(ToolCallback[] allTools, ChatModel dashscopeChatModel, ToolCallbackProvider toolCallbackProvider) {
         super(allTools);  
         this.setName("RuiManus");
         String SYSTEM_PROMPT = """  
@@ -24,10 +25,11 @@ public class RuiManus extends ToolCallAgent {
                 If you want to stop the interaction at any point, use the `terminate` tool/function call.  
                 """;  
         this.setNextStepPrompt(NEXT_STEP_PROMPT);  
-        this.setMaxSteps(20);  
+        this.setMaxSteps(10);
         // 初始化客户端  
         ChatClient chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultAdvisors(new MyLoggerAdvisors())
+                .defaultTools(toolCallbackProvider)
                 .build();  
         this.setChatClient(chatClient);  
     }  
