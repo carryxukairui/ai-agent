@@ -26,9 +26,10 @@
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  background: radial-gradient(1200px 800px at 10% 0%, rgba(99, 102, 241, 0.18), transparent 60%),
-    radial-gradient(1000px 800px at 90% 10%, rgba(20, 184, 166, 0.16), transparent 60%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 1));
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(34, 211, 238, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(99, 102, 241, 0.06), transparent 45%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20, 184, 166, 0.06), transparent 45%),
+    linear-gradient(180deg, #0f172a 0%, #020617 100%);
   color: var(--text);
 }
 
@@ -39,10 +40,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   backdrop-filter: blur(10px);
   background: rgba(2, 6, 23, 0.5);
+}
+
+@media (min-width: 768px) {
+  .topbar {
+    padding: 14px 18px;
+  }
+  .logo {
+    width: 34px;
+    height: 34px;
+    font-size: inherit;
+  }
 }
 
 .brand {
@@ -54,8 +68,9 @@
 }
 
 .logo {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
   border-radius: 10px;
   display: grid;
   place-items: center;
@@ -79,12 +94,19 @@
   flex-wrap: wrap;
 }
 .nav-link {
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: 10px;
   color: rgba(226, 232, 240, 0.84);
   text-decoration: none;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(2, 6, 23, 0.3);
+  font-size: 14px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+@media (min-width: 768px) {
+  .nav-link {
+    padding: 8px 10px;
+  }
 }
 .nav-link.router-link-active {
   color: rgba(255, 255, 255, 0.95);
@@ -93,9 +115,16 @@
 }
 
 .main {
-  padding: 18px;
+  padding: 12px 14px;
   max-width: 1100px;
   margin: 0 auto;
+  min-height: calc(100vh - 60px);
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding: 18px;
+  }
 }
 </style>
 

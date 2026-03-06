@@ -4,6 +4,8 @@
     :subtitle="`接口：/ai/manus/chat（SSE）`"
     sse-path="/ai/manus/chat"
     :send-chat-id="false"
+    ai-avatar="🧠"
+    :add-newline-per-chunk="true"
   />
 </template>
 

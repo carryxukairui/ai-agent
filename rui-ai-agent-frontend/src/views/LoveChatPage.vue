@@ -4,6 +4,7 @@
     :subtitle="`接口：/ai/love_app/chat/sse（SSE）`"
     sse-path="/ai/love_app/chat/sse"
     :send-chat-id="true"
+    ai-avatar="💕"
   />
 </template>
 

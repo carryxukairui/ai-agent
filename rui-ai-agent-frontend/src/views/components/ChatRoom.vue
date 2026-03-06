@@ -27,6 +27,12 @@
       </div>
 
       <div v-for="m in messages" :key="m.id" class="row" :class="m.role">
+        <div class="avatar-wrap" v-if="m.role === 'ai'">
+          <div class="avatar" :class="{ 'avatar-img': isAvatarUrl }">
+            <img v-if="isAvatarUrl" :src="props.aiAvatar" alt="AI" />
+            <span v-else>{{ props.aiAvatar }}</span>
+          </div>
+        </div>
         <div class="bubble">
           <div class="bubble-meta">
             <span class="role">{{ m.role === 'user' ? '你' : 'AI' }}</span>
@@ -88,12 +94,19 @@ type ChatMsg = {
   streaming?: boolean;
 };
 
-const props = defineProps<{
-  title: string;
-  subtitle: string;
-  ssePath: string;
-  sendChatId: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    subtitle: string;
+    ssePath: string;
+    sendChatId: boolean;
+    /** AI 默认头像：图片 URL 或 emoji/文字（显示在圆形区域） */
+    aiAvatar?: string;
+    /** 超级智能体模式：每次 SSE chunk 后额外加一个换行（后端每步一次响应） */
+    addNewlinePerChunk?: boolean;
+  }>(),
+  { aiAvatar: "🤖", addNewlinePerChunk: false }
+);
 
 const chatId = ref<string>(newChatId());
 const draft = ref("");
@@ -107,6 +120,11 @@ const userPinnedToBottom = ref(true);
 const expandedThinkingIds = ref<Set<string>>(new Set());
 
 const lastMsg = computed(() => messages.value[messages.value.length - 1]);
+const isAvatarUrl = computed(
+  () =>
+    typeof props.aiAvatar === "string" &&
+    (props.aiAvatar.startsWith("http") || props.aiAvatar.startsWith("/"))
+);
 
 function toggleThinking(id: string) {
   const next = new Set(expandedThinkingIds.value);
@@ -195,6 +213,7 @@ async function send() {
       } else {
         aiMsg.text += chunk;
         if (chunk && !chunk.endsWith("\n")) aiMsg.text += "\n";
+        if (props.addNewlinePerChunk && chunk) aiMsg.text += "\n";
         const nextExpanded = new Set(expandedThinkingIds.value);
         nextExpanded.add(aiMsg.id);
         expandedThinkingIds.value = nextExpanded;
@@ -236,10 +255,18 @@ onBeforeUnmount(() => {
 .chat-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 12px;
-  padding: 14px 14px 12px;
+  padding: 12px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(2, 6, 23, 0.25);
+}
+
+@media (min-width: 768px) {
+  .chat-header {
+    padding: 14px 14px 12px;
+  }
 }
 
 .title-row {
@@ -284,10 +311,17 @@ onBeforeUnmount(() => {
 }
 
 .chat-body {
-  height: min(66vh, 640px);
+  height: min(60vh, 500px);
   overflow: auto;
-  padding: 14px;
+  padding: 12px;
   background: rgba(2, 6, 23, 0.12);
+}
+
+@media (min-width: 768px) {
+  .chat-body {
+    height: min(66vh, 640px);
+    padding: 14px;
+  }
 }
 
 .empty {
@@ -315,11 +349,33 @@ onBeforeUnmount(() => {
 }
 .row.ai {
   justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+}
+.avatar-wrap {
+  flex-shrink: 0;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(20, 184, 166, 0.4));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 18px;
+  overflow: hidden;
+}
+.avatar.avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .bubble {
-  max-width: min(780px, 92%);
-  border-radius: 16px;
+  max-width: min(780px, 100%);
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(15, 23, 42, 0.55);
@@ -355,6 +411,7 @@ onBeforeUnmount(() => {
   font-family: inherit;
   line-height: 1.6;
   color: rgba(248, 250, 252, 0.92);
+  text-align: left;
 }
 
 .thinking-block {
@@ -411,16 +468,28 @@ onBeforeUnmount(() => {
 .chat-footer {
   border-top: 1px solid rgba(148, 163, 184, 0.14);
   background: rgba(2, 6, 23, 0.25);
-  padding: 12px 14px 14px;
+  padding: 12px;
   display: grid;
   gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .chat-footer {
+    padding: 12px 14px 14px;
+  }
 }
 
 .composer {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
-  align-items: center;
+  align-items: flex-end;
+}
+
+@media (max-width: 480px) {
+  .composer {
+    grid-template-columns: 1fr;
+  }
 }
 
 .composer textarea {
@@ -444,6 +513,17 @@ onBeforeUnmount(() => {
 }
 .dot.ok {
   background: rgba(34, 197, 94, 0.95);
+}
+
+@media (min-width: 768px) {
+  .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .row.ai {
+    gap: 12px;
+  }
 }
 </style>
 
