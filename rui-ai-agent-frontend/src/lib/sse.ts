@@ -1,7 +1,8 @@
 import { API_BASE_URL } from "./http";
 
+/** event 为后端发送的 SSE event 类型，如 "thinking" | "result"；未带 event 的流为 undefined */
 export type SseHandlers = {
-  onChunk: (chunk: string) => void;
+  onChunk: (chunk: string, event?: string) => void;
   onError?: (err: unknown) => void;
   onOpen?: () => void;
 };
@@ -55,6 +56,19 @@ export function openSse(
       const reader = resp.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
+      /** 当前事件的 event 类型 */
+      let currentEvent: string | undefined;
+      /** 同一事件内的多行 data 累积（SSE 规范：多行 data 拼接为一个 payload） */
+      let dataLines: string[] = [];
+
+      function flushEvent() {
+        if (dataLines.length > 0) {
+          const payload = dataLines.join("\n");
+          if (payload) handlers.onChunk(payload, currentEvent);
+          dataLines = [];
+        }
+        currentEvent = undefined;
+      }
 
       while (true) {
         const { value, done } = await reader.read();
@@ -64,30 +78,44 @@ export function openSse(
         const chunkText = decoder.decode(value, { stream: true });
         if (!chunkText) continue;
 
-        // 累积文本并按行解析 SSE 格式（只取 data: 前缀的行）
         buffer += chunkText;
         let idx: number;
         while ((idx = buffer.indexOf("\n")) >= 0) {
-          const line = buffer.slice(0, idx).replace(/\r$/, "");
+          const raw = buffer.slice(0, idx).replace(/\r$/, "");
           buffer = buffer.slice(idx + 1);
-          if (!line) continue;
+          const line = raw.trim();
+          if (!line) {
+            flushEvent();
+            continue;
+          }
+          if (line.startsWith("event:")) {
+            flushEvent();
+            currentEvent = line.slice(6).trim() || undefined;
+            continue;
+          }
           if (line.startsWith("data:")) {
-            const payload = line.slice(5); // 去掉 "data:"
-            if (payload) {
-              handlers.onChunk(payload);
-            }
+            dataLines.push(line.slice(5).replace(/^\s/, ""));
+            continue;
           }
         }
       }
 
-      // 结束时把可能剩余的一小段 data 行也处理掉
       if (buffer.trim().length > 0) {
-        const line = buffer.replace(/\r/g, "");
-        if (line.startsWith("data:")) {
-          const payload = line.slice(5);
-          if (payload) handlers.onChunk(payload);
+        for (const raw of buffer.split(/\r?\n/)) {
+          const line = raw.trim();
+          if (!line) {
+            flushEvent();
+            continue;
+          }
+          if (line.startsWith("event:")) {
+            flushEvent();
+            currentEvent = line.slice(6).trim() || undefined;
+          } else if (line.startsWith("data:")) {
+            dataLines.push(line.slice(5).replace(/^\s/, ""));
+          }
         }
       }
+      flushEvent();
 
       // 正常结束：前端目前没有 onDone 回调，这里用 onError 通知结束，
       // 以便 ChatRoom 里复用 onError 将 streaming/sending 置为 false。

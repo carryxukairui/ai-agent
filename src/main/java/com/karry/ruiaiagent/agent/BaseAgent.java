@@ -43,6 +43,9 @@ public abstract class BaseAgent {
     // Memory 记忆（需要自主维护会话上下文）
     private List<Message> messageList = new ArrayList<>();
 
+    /** 当某步为“最终回复”（不调用工具）时由子类设置，用于 SSE event=result 的正文 */
+    private String lastFinalAnswer;
+
     /**
      * 运行代理
      *
@@ -105,12 +108,12 @@ public abstract class BaseAgent {
             // 1、基础校验
             try {
                 if (this.status != AgentStatus.IDLE) {
-                    sseEmitter.send("错误：无法从状态运行代理：" + this.status);
+                    sseEmitter.send(SseEmitter.event().name("result").data("错误：无法从状态运行代理：" + this.status));
                     sseEmitter.complete();
                     return;
                 }
                 if (StrUtil.isBlank(userPrompt)) {
-                    sseEmitter.send("错误：不能使用空提示词运行代理");
+                    sseEmitter.send(SseEmitter.event().name("result").data("错误：不能使用空提示词运行代理"));
                     sseEmitter.complete();
                     return;
                 }
@@ -119,6 +122,7 @@ public abstract class BaseAgent {
             }
             // 2、执行，更改状态
             this.status = AgentStatus.RUNNING;
+            setLastFinalAnswer(null);
             // 记录消息上下文
             messageList.add(new UserMessage(userPrompt));
             // 保存结果列表
@@ -133,22 +137,24 @@ public abstract class BaseAgent {
                     String stepResult = step();
                     String result = "Step " + stepNumber + ": " + stepResult;
                     results.add(result);
-                    // 输出当前每一步的结果到 SSE
-                    sseEmitter.send(result);
+                    // 思考过程：以 event=thinking 流式输出每一步（工具调用、中间过程等）
+                    sseEmitter.send(SseEmitter.event().name("thinking").data(result));
                 }
                 // 检查是否超出步骤限制
                 if (currentStep >= maxSteps) {
                     status = AgentStatus.FINISHED;
                     results.add("Terminated: Reached max steps (" + maxSteps + ")");
-                    sseEmitter.send("执行结束：达到最大步骤（" + maxSteps + "）");
+                    sseEmitter.send(SseEmitter.event().name("thinking").data("执行结束：达到最大步骤（" + maxSteps + "）"));
                 }
-                // 正常完成
+                // 最终结果：优先使用子类设置的 lastFinalAnswer（AI 的 textContent），否则回退为全部步骤拼接
+                String resultPayload = StrUtil.isNotBlank(getLastFinalAnswer()) ? getLastFinalAnswer() : String.join("\n", results);
+                sseEmitter.send(SseEmitter.event().name("result").data(resultPayload));
                 sseEmitter.complete();
             } catch (Exception e) {
                 status = AgentStatus.ERROR;
                 log.error("error executing agent", e);
                 try {
-                    sseEmitter.send("执行错误：" + e.getMessage());
+                    sseEmitter.send(SseEmitter.event().name("result").data("执行错误：" + e.getMessage()));
                     sseEmitter.complete();
                 } catch (IOException ex) {
                     sseEmitter.completeWithError(ex);

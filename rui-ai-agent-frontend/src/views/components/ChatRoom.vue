@@ -32,7 +32,21 @@
             <span class="role">{{ m.role === 'user' ? '你' : 'AI' }}</span>
             <span v-if="m.streaming" class="streaming">输出中…</span>
           </div>
-          <pre class="text">{{ m.text }}</pre>
+          <!-- 思考过程：上边、可折叠，默认折叠 -->
+          <div v-if="m.text" class="thinking-block">
+            <button type="button" class="thinking-toggle" @click="toggleThinking(m.id)" :aria-expanded="expandedThinkingIds.has(m.id)">
+              <span class="toggle-icon">{{ expandedThinkingIds.has(m.id) ? '▼' : '▶' }}</span>
+              <span>思考过程</span>
+            </button>
+            <div v-show="expandedThinkingIds.has(m.id)" class="thinking-content">
+              <pre class="text thinking">{{ m.text }}</pre>
+            </div>
+          </div>
+          <!-- 正式回答：下边固定展示 -->
+          <div v-if="m.finalResult" class="result-block">
+            <div class="result-label">回答</div>
+            <pre class="text result">{{ m.finalResult }}</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -67,7 +81,10 @@ type Role = "user" | "ai";
 type ChatMsg = {
   id: string;
   role: Role;
+  /** 兼容旧接口：无 event 时流式内容累积在此；有 event 时 thinking 流也先累积在此便于“输出中”展示 */
   text: string;
+  /** 后端 event=result 时的最终结果（有则单独展示） */
+  finalResult?: string;
   streaming?: boolean;
 };
 
@@ -86,8 +103,17 @@ const backendOk = ref(false);
 
 const scrollEl = ref<HTMLDivElement | null>(null);
 const userPinnedToBottom = ref(true);
+/** 已展开思考过程的消息 id 集合，默认折叠故为空 */
+const expandedThinkingIds = ref<Set<string>>(new Set());
 
 const lastMsg = computed(() => messages.value[messages.value.length - 1]);
+
+function toggleThinking(id: string) {
+  const next = new Set(expandedThinkingIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  expandedThinkingIds.value = next;
+}
 
 let sseCloser: null | (() => void) = null;
 
@@ -156,17 +182,32 @@ async function send() {
     onOpen: () => {
       backendOk.value = true;
     },
-    onChunk: (chunk) => {
-      console.log("前端收到一段 SSE chunk:", chunk);
+    onChunk: (chunk, event) => {
+      console.log("前端收到一段 SSE chunk:", event ?? "(无event)", chunk);
       backendOk.value = true;
-      aiMsg.text += chunk;
-      // 重新赋值触发列表级别的响应式更新，确保 UI 立即重渲染
+      if (event === "result") {
+        aiMsg.finalResult = chunk;
+        aiMsg.streaming = false;
+        sending.value = false;
+        const nextCollapsed = new Set(expandedThinkingIds.value);
+        nextCollapsed.delete(aiMsg.id);
+        expandedThinkingIds.value = nextCollapsed;
+      } else {
+        aiMsg.text += chunk;
+        if (chunk && !chunk.endsWith("\n")) aiMsg.text += "\n";
+        const nextExpanded = new Set(expandedThinkingIds.value);
+        nextExpanded.add(aiMsg.id);
+        expandedThinkingIds.value = nextExpanded;
+      }
       messages.value = [...messages.value];
       scrollToBottom();
     },
     onError: () => {
       aiMsg.streaming = false;
       sending.value = false;
+      const next = new Set(expandedThinkingIds.value);
+      next.delete(aiMsg.id);
+      expandedThinkingIds.value = next;
     },
   });
 
@@ -314,6 +355,57 @@ onBeforeUnmount(() => {
   font-family: inherit;
   line-height: 1.6;
   color: rgba(248, 250, 252, 0.92);
+}
+
+.thinking-block {
+  margin-bottom: 10px;
+}
+.thinking-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.4);
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.thinking-toggle:hover {
+  background: rgba(30, 41, 59, 0.5);
+}
+.toggle-icon {
+  font-size: 10px;
+  color: rgba(148, 163, 184, 0.9);
+}
+.thinking-content {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+.text.thinking {
+  font-size: 0.88em;
+  color: rgba(226, 232, 240, 0.78);
+  margin: 0;
+}
+
+.result-block {
+  margin-top: 4px;
+}
+.result-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(34, 197, 94, 0.9);
+  margin-bottom: 6px;
+}
+.text.result {
+  font-weight: 500;
+  margin: 0;
 }
 
 .chat-footer {

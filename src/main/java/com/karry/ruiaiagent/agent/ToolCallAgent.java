@@ -101,8 +101,9 @@ public class ToolCallAgent extends ReActAgent {
                     .collect(Collectors.joining("\n"));
             log.info(toolCallInfo);
             if (toolCallList.isEmpty()) {
-                // 只有不调用工具时，才记录助手消息
+                // 只有不调用工具时，才记录助手消息，并将此次 textContent 作为“最终回复”供 SSE result 使用
                 getMessageList().add(assistantMessage);
+                setLastFinalAnswer(StrUtil.isNotBlank(result) ? result : null);
                 return false;
             } else {
                 // 需要调用工具时，无需记录助手消息，因为调用工具时会自动记录
@@ -143,6 +144,9 @@ public class ToolCallAgent extends ReActAgent {
                 .anyMatch(response -> "doTerminate".equals(response.name()));
         if (terminateToolCalled) {
             setStatus(AgentStatus.FINISHED);
+            // 通过结束工具结束任务时，使用发起该调用的助手消息 text 作为最终回复
+            String assistantText = toolCallChatResponse.getResult().getOutput().getText();
+            setLastFinalAnswer(StrUtil.isNotBlank(assistantText) ? assistantText : null);
         }
         log.info(results);
         return results;
