@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
+            <version>1.18.38</version>
             <optional>true</optional>
         </dependency>
 
@@ -63,7 +63,7 @@
         <!-- MCP Server stdio 模式依赖 -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp-server-webmvc-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-mcp-server-webflux-spring-boot-starter</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
 

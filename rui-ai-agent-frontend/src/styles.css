@@ -1,0 +1,74 @@
+:root {
+  --text: rgba(248, 250, 252, 0.92);
+  --muted: rgba(226, 232, 240, 0.72);
+  --panel: rgba(15, 23, 42, 0.55);
+  --panel-strong: rgba(15, 23, 42, 0.75);
+  --border: rgba(148, 163, 184, 0.16);
+  --primary: rgba(99, 102, 241, 0.95);
+  --primary-soft: rgba(99, 102, 241, 0.2);
+  --teal: rgba(20, 184, 166, 0.95);
+  --danger: rgba(239, 68, 68, 0.95);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: rgba(2, 6, 23, 0.35);
+  color: rgba(248, 250, 252, 0.92);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+}
+.btn.primary {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(20, 184, 166, 0.85));
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(2, 6, 23, 0.35);
+  color: rgba(248, 250, 252, 0.92);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+.input:focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+

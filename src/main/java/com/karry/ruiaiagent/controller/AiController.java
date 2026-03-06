@@ -73,31 +73,27 @@ public class AiController {
         // 返回emitter
         return emitter;
     }
-
-
-    @GetMapping("/love_app/chat/image")
-    public String doChatWithImageMcp(String message, String chatId) {
-        return loveApp.doChatWithImageMcp(message, chatId);
-    }
-
-
     /**
      * 流式调用 Manus 超级智能体
      *
      * @param message
      * @return
      */
-    @PostMapping("/manus/chat")
-    public SseEmitter doChatWithManus(@RequestParam String message) {
-        log.info("开始执行");
-        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel);
+    @GetMapping("/manus/chat")
+    public SseEmitter getDoChatWithManus( String message) {
+        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel, toolCallbackProvider);
         return ruiManus.runStream(message);
     }
 
-    @GetMapping("/get/manus/chat")
-    public SseEmitter getDoChatWithManus( String message) {
-        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel);
+    @PostMapping("/manus/chat")
+    public SseEmitter doChatWithManus(@RequestParam String message) {
+        log.info("开始执行");
+        RuiManus ruiManus = new RuiManus(allTools, dashscopeChatModel, toolCallbackProvider);
         return ruiManus.runStream(message);
+    }
+    @GetMapping("/love_app/chat/image")
+    public String doChatWithImageMcp(String message, String chatId) {
+        return loveApp.doChatWithImageMcp(message, chatId);
     }
 
 }

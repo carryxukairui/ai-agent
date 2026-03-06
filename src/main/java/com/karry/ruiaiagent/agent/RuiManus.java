@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RuiManus extends ToolCallAgent {
   
-    public RuiManus(ToolCallback[] allTools, ChatModel dashscopeChatModel) {
+    public RuiManus(ToolCallback[] allTools, ChatModel dashscopeChatModel,ToolCallbackProvider toolCallbackProvider) {
         super(allTools);
         this.setName("RuiManus");
         String SYSTEM_PROMPT = """  
@@ -29,7 +29,7 @@ public class RuiManus extends ToolCallAgent {
         // 初始化客户端
         ChatClient chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultAdvisors(new MyLoggerAdvisors())
-
+                .defaultTools(toolCallbackProvider)
                 .build();
         this.setChatClient(chatClient);
     }  
