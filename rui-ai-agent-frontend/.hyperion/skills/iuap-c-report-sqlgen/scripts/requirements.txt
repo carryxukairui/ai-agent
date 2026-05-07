@@ -1,0 +1,8 @@
+PyYAML>=6.0
+sqlparse>=0.4.4
+requests>=2.28.0
+pymysql>=1.1.0
+psycopg2-binary>=2.9.9
+cx-Oracle>=8.3.0
+dmPython>=1.2.0
+pymssql>=2.2.0
